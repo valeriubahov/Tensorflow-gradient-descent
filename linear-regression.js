@@ -21,7 +21,11 @@ class LinearRegression {
 
   gradientDescent() {
     // 1 - find the MSE with respect to B
+    // 2 - find the MSE with respect to M
+
+    // EQUIATION:
     // 2/numOfRecords * (sum((m * feature + b) - label))
+
     const currentGuessesForMPG = this.features.map((row) => {
       // row[0] = horse power
       return this.m * row[0] + this.b;
