@@ -3,10 +3,15 @@ const _ = require("lodash");
 
 class LinearRegression {
   constructor(features, labels, options) {
-    this.features = features;
-    this.labels = labels;
+    // Create tensors from arrays for the features and labels
+    this.features = tf.tensor(features);
+    this.labels = tf.tensor(labels);
+
+    // create a column of ones in order to make possible the tensor moltiplication (matrix moltiplication)
+    this.features = tf.ones([this.features.shape[0], 1]).concat(this.features, 1);
+
+    // set default value to VERY important property
     this.options = Object.assign(
-      // set default value to VERY important property
       {
         learningRate: 0.1,
         iterations: 1000, // how many time to run our Linear Descent logarithm before exit
@@ -14,46 +19,28 @@ class LinearRegression {
       options
     );
 
-    // initial guesses of m and b
-    this.m = 0;
-    this.b = 0;
+    // initial tensor containing b and m
+    this.weights = tf.zeros([2, 1]);
   }
 
   gradientDescent() {
-    // 1 - find the MSE with respect to B
-    // 2 - find the MSE with respect to M
+    // EQUATION ==> (Features * ((Features * Weights) - Labels)) / n
 
-    // EQUIATION:
-    // 2/numOfRecords * (sum((m * feature + b) - label))
+    // Features => Tensor of feature data
+    // Labels => Tensor of label data
+    // n => Number of observations
+    // Weights => Tensor containing M and B
+    // Features * Weights => Tensor Moltiplication (Matrix moltiplication)
 
-    const currentGuessesForMPG = this.features.map((row) => {
-      // row[0] = horse power
-      return this.m * row[0] + this.b;
-    });
+    // matMul => matrix moltiplication (number of columns of tensor1 must be equal to number of rows of tensor 2)
+    const currentGuesses = this.features.matMul(this.weights);
+    const differences = currentGuesses.sub(this.labels);
 
-    // calculate the MSE of B
-    const bSlope =
-      (_.sum(
-        currentGuessesForMPG.map((guess, index) => {
-          return guess - this.labels[index][0];
-        })
-      ) *
-        2) /
-      this.features.length;
+    // transpose => make rows become columns and columns become rows
+    const slopes = this.features.transpose().matMul(differences).div(this.features.shape[0]);
 
-    // calculate the MSE of M
-    const mSlope =
-      (_.sum(
-        currentGuessesForMPG.map((guess, index) => {
-          return -1 * this.features[index][0] * (this.labels[index][0] - guess);
-        })
-      ) *
-        2) /
-      this.features.length;
-
-    // update the MSE slops for m and b
-    this.m = this.m - mSlope * this.options.learningRate;
-    this.b = this.b - bSlope * this.options.learningRate;
+    // update the values of b and m
+    this.weights = this.weights.sub(slopes.mul(this.options.learningRate));
   }
 
   // train our model
