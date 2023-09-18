@@ -33,7 +33,6 @@ class LinearRegression {
     // Features * Weights => Tensor Moltiplication (Matrix moltiplication)
 
     // matMul => matrix moltiplication (number of columns of tensor1 must be equal to number of rows of tensor 2)
-
     // (Features * Weights)
     const currentGuesses = this.features.matMul(this.weights);
 
@@ -54,6 +53,33 @@ class LinearRegression {
     for (let i = 0; i < this.options.iterations; i++) {
       this.gradientDescent();
     }
+  }
+
+  test(testFeatures, testLabels) {
+    // convert arrays to tensors
+    testFeatures = tf.tensor(testFeatures);
+    testLabels = tf.tensor(testLabels);
+
+    // add a column of ones to our test features to enable matrix moltiplication
+    testFeatures = tf.ones([testFeatures.shape[0], 1]).concat(testFeatures, 1);
+
+    // predict the values using b and m calculated before in the training phase
+    const predictions = testFeatures.matMul(this.weights);
+
+    // From here we got the predictions but we don't know if they are accurate
+    // To check the accuracy of our predictions we are going to use the 'Coefficient of Determination'
+
+    // Coefficient of Determination => 1 - SSres / SStot
+    // SSres => SUM of (Labels - Predictions)^2
+    // SStot => SUM of (Labels - Average of Labels)^2
+
+    // SSres
+    const ss_res = testLabels.sub(predictions).pow(2).sum().get();
+
+    //SStot
+    const ss_tot = testLabels.sub(testLabels.mean()).pow(2).sum().get();
+
+    return 1 - ss_res / ss_tot; // coefficient of determination
   }
 }
 
