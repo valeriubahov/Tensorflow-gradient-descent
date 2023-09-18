@@ -33,13 +33,19 @@ class LinearRegression {
     // Features * Weights => Tensor Moltiplication (Matrix moltiplication)
 
     // matMul => matrix moltiplication (number of columns of tensor1 must be equal to number of rows of tensor 2)
+
+    // (Features * Weights)
     const currentGuesses = this.features.matMul(this.weights);
+
+    // ((Features * Weights) - Labels)
     const differences = currentGuesses.sub(this.labels);
 
     // transpose => make rows become columns and columns become rows
+    // (Features * ((Features * Weights) - Labels))) / n
     const slopes = this.features.transpose().matMul(differences).div(this.features.shape[0]);
 
     // update the values of b and m
+    // m,b =  m/b - (mslope/bslope * learningRate)
     this.weights = this.weights.sub(slopes.mul(this.options.learningRate));
   }
 
