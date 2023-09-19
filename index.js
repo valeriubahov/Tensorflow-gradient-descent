@@ -13,7 +13,7 @@ let { features, labels, testFeatures, testLabels } = loadCSV("./data/cars.csv", 
 
 const regression = new LinearRegression(features, labels, {
   learningRate: 0.1,
-  iterations: 50,
+  iterations: 40,
 });
 
 regression.train();
@@ -26,4 +26,7 @@ const r2 = regression.test(testFeatures, testLabels);
 console.log(`Guesses accuracy is ${Math.round(r2 * 100, 2)}%`);
 
 // create a linear chart to view the Plot between MSE and B
-createChart(regression.bHistory, regression.mseHistory);
+createChart(regression.bHistory, regression.mseHistory, "Mean Squared Error");
+
+const numberOfIterations = Array.from(Array(regression.options.iterations).keys());
+createChart(numberOfIterations, regression.mseHistory, "Iterations #");

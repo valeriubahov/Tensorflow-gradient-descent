@@ -11,16 +11,17 @@ const chartCallback = (ChartJS) => {
   ChartJS.defaults.maintainAspectRatio = false;
 };
 
-const createChart = async (bHistory, mseHistory) => {
+const createChart = async (xValues, yValues, chartName) => {
   const configuration = {
     type: "line", // define the chart type
     data: {
-      labels: bHistory, // X line
+      // X line
+      labels: xValues,
       datasets: [
         // Y line
         {
-          label: "Mean Squared Error",
-          data: mseHistory,
+          label: chartName,
+          data: yValues,
           borderWidth: 1,
           borderColor: borderColor,
           pointStyle: "circle",
@@ -42,12 +43,21 @@ const createChart = async (bHistory, mseHistory) => {
           ctx.restore();
         },
       },
+      {
+        legend: {
+          position: "top",
+        },
+        title: {
+          display: true,
+          text: chartName,
+        },
+      },
     ],
   };
 
   const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height, chartCallback });
   const buffer = chartJSNodeCanvas.renderToBufferSync(configuration);
-  fs.writeFileSync("./charts/MSE.png", buffer, "base64");
+  fs.writeFileSync(`./charts/${chartName}.png`, buffer, "base64");
 };
 
 module.exports = { createChart };
