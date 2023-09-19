@@ -4,11 +4,8 @@ const _ = require("lodash");
 class LinearRegression {
   constructor(features, labels, options) {
     // Create tensors from arrays for the features and labels
-    this.features = tf.tensor(features);
+    this.features = this.processFeatures(features);
     this.labels = tf.tensor(labels);
-
-    // create a column of ones in order to make possible the tensor moltiplication (matrix moltiplication)
-    this.features = tf.ones([this.features.shape[0], 1]).concat(this.features, 1);
 
     // set default value to VERY important property
     this.options = Object.assign(
@@ -57,11 +54,8 @@ class LinearRegression {
 
   test(testFeatures, testLabels) {
     // convert arrays to tensors
-    testFeatures = tf.tensor(testFeatures);
+    testFeatures = this.processFeatures(testFeatures);
     testLabels = tf.tensor(testLabels);
-
-    // add a column of ones to our test features to enable matrix moltiplication
-    testFeatures = tf.ones([testFeatures.shape[0], 1]).concat(testFeatures, 1);
 
     // predict the values using b and m calculated before in the training phase
     const predictions = testFeatures.matMul(this.weights);
@@ -80,6 +74,35 @@ class LinearRegression {
     const ss_tot = testLabels.sub(testLabels.mean()).pow(2).sum().get();
 
     return 1 - ss_res / ss_tot; // coefficient of determination
+  }
+
+  processFeatures(features) {
+    features = tf.tensor(features);
+
+    if (this.mean && this.variance) {
+      features = features.sub(this.mean).div(this.variance.pow(0.5));
+    } else {
+      features = this.standardize(features);
+    }
+
+    // MUST APPLY ONLY AFTER STANDARDIZATION
+    // create a column of ones in order to make possible the tensor moltiplication (matrix moltiplication)
+    features = tf.ones([features.shape[0], 1]).concat(features, 1);
+
+    return features;
+  }
+
+  standardize(features) {
+    // calculate the mean and the variance to use to standardize our features
+    const { mean, variance } = tf.moments(features, 0);
+
+    // Save the mean and variance values inside our class to use to standardize our Test features
+    // Test features MUST use the same mean and variance that we used to standardize our features
+    this.mean = mean;
+    this.variance = variance;
+
+    // return the standardized value
+    return features.sub(mean).div(variance.pow(0.5));
   }
 }
 
