@@ -10,6 +10,9 @@ class LinearRegression {
     // here I'll store the mean square error history in order to adjust the learning rate automatically
     this.mseHistory = [];
 
+    // record how our guesses of B are changing over time
+    this.bHistory = [];
+
     // set default value to VERY important property
     this.options = Object.assign(
       {
@@ -51,6 +54,8 @@ class LinearRegression {
   // train our model
   train() {
     for (let i = 0; i < this.options.iterations; i++) {
+      this.bHistory.push(this.weights.get(0, 0));
+
       this.gradientDescent();
 
       // after every gradient descent calculation record the mean square error
@@ -148,8 +153,6 @@ class LinearRegression {
       // MSE decresed then we speed up the learning rate by 5%
       this.options.learningRate *= 1.05;
     }
-
-    console.log("Learning Rate", this.options.learningRate);
   }
 }
 
