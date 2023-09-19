@@ -7,6 +7,9 @@ class LinearRegression {
     this.features = this.processFeatures(features);
     this.labels = tf.tensor(labels);
 
+    // here I'll store the mean square error history in order to adjust the learning rate automatically
+    this.mseHistory = [];
+
     // set default value to VERY important property
     this.options = Object.assign(
       {
@@ -49,6 +52,12 @@ class LinearRegression {
   train() {
     for (let i = 0; i < this.options.iterations; i++) {
       this.gradientDescent();
+
+      // after every gradient descent calculation record the mean square error
+      this.recordMSE();
+
+      // update the learning rate to use for the next training loop
+      this.updateLearningRate();
     }
   }
 
@@ -103,6 +112,44 @@ class LinearRegression {
 
     // return the standardized value
     return features.sub(mean).div(variance.pow(0.5));
+  }
+
+  recordMSE() {
+    // mse = (sum ((features * weights) - labels)^ 2) / numOfFeatures
+    const mse = this.features
+      .matMul(this.weights)
+      .sub(this.labels)
+      .pow(2)
+      .sum()
+      .div(this.features.shape[0])
+      .get();
+
+    // I could use unshift to put the most recent at array starting position
+    // but time complexity of unshift is O(n) and push is O(1)
+    // for big arrays unshift is slower than push
+    this.mseHistory.push(mse);
+  }
+
+  updateLearningRate() {
+    // update the learning rate by checking the last 2 mse
+    // if MSE was not calculated at least 2 times do not update the learning rate
+    if (this.mseHistory.length < 2) {
+      return;
+    }
+
+    // get last 2 MSE calculations from istory
+    const lastMse = this.mseHistory.at(-1);
+    const secondLastMse = this.mseHistory.at(-2);
+
+    if (lastMse > secondLastMse) {
+      // MSE increased from last calculation then divide learning rate by 2
+      this.options.learningRate /= 2;
+    } else {
+      // MSE decresed then we speed up the learning rate by 5%
+      this.options.learningRate *= 1.05;
+    }
+
+    console.log("Learning Rate", this.options.learningRate);
   }
 }
 

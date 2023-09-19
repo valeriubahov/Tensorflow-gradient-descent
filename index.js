@@ -21,4 +21,4 @@ regression.train();
 const r2 = regression.test(testFeatures, testLabels);
 // if r2 is negative that means that our previsions are higher than the actual values
 // - infinite < r2 < 1
-console.log("R2 is", r2);
+console.log(`Guesses accuracy is ${Math.round(r2 * 100)}%`);
