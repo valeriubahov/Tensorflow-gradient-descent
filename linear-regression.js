@@ -79,6 +79,12 @@ class LinearRegression {
     }
   }
 
+  // observations = [[horsepower, weight, displacement]]
+  predict(observations) {
+    // standardize the observations and return the predictions of Miles x Galons
+    return this.processFeatures(observations).matMul(this.weights);
+  }
+
   // run some tests with our trained model
   test(testFeatures, testLabels) {
     // convert arrays to tensors
