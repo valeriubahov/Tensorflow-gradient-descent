@@ -13,7 +13,8 @@ let { features, labels, testFeatures, testLabels } = loadCSV("./data/cars.csv", 
 
 const regression = new LinearRegression(features, labels, {
   learningRate: 0.1,
-  iterations: 40,
+  iterations: 5,
+  batchSize: 10, // define the batch size for batch gradient descent
 });
 
 regression.train();

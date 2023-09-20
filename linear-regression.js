@@ -26,7 +26,7 @@ class LinearRegression {
     this.weights = tf.zeros([this.features.shape[1], 1]);
   }
 
-  gradientDescent() {
+  gradientDescent(features, labels) {
     // EQUATION ==> (Features * ((Features * Weights) - Labels)) / n
 
     // Features => Tensor of feature data
@@ -37,14 +37,14 @@ class LinearRegression {
 
     // matMul => matrix moltiplication (number of columns of tensor1 must be equal to number of rows of tensor 2)
     // (Features * Weights)
-    const currentGuesses = this.features.matMul(this.weights);
+    const currentGuesses = features.matMul(this.weights);
 
     // ((Features * Weights) - Labels)
-    const differences = currentGuesses.sub(this.labels);
+    const differences = currentGuesses.sub(labels);
 
     // transpose => make rows become columns and columns become rows
     // (Features * ((Features * Weights) - Labels))) / n
-    const slopes = this.features.transpose().matMul(differences).div(this.features.shape[0]);
+    const slopes = features.transpose().matMul(differences).div(features.shape[0]);
 
     // update the values of b and m
     // m,b =  m/b - (mslope/bslope * learningRate)
@@ -53,10 +53,23 @@ class LinearRegression {
 
   // train our model
   train() {
-    for (let i = 0; i < this.options.iterations; i++) {
-      this.bHistory.push(this.weights.get(0, 0));
+    // How many batches of data we have
+    const batchQuantity = Math.floor(this.features.shape[0] / this.options.batchSize);
 
-      this.gradientDescent();
+    for (let i = 0; i < this.options.iterations; i++) {
+      // calculate the gradient descent using batch of data
+      for (let j = 0; j < batchQuantity; j++) {
+        const startIndex = j * this.options.batchSize;
+        const { batchSize } = this.options;
+
+        const featureSlice = this.features.slice([startIndex, 0], [batchSize, -1]);
+        const labelSlice = this.labels.slice([startIndex, 0], [batchSize, -1]);
+
+        this.gradientDescent(featureSlice, labelSlice);
+      }
+
+      // save B history for analytics purpose
+      this.bHistory.push(this.weights.get(0, 0));
 
       // after every gradient descent calculation record the mean square error
       this.recordMSE();
@@ -66,6 +79,7 @@ class LinearRegression {
     }
   }
 
+  // run some tests with our trained model
   test(testFeatures, testLabels) {
     // convert arrays to tensors
     testFeatures = this.processFeatures(testFeatures);
