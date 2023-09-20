@@ -58,5 +58,5 @@ for (let i = 0; i < numberOfPredictions; i++) {
   console.log("", "");
 }
 
-console.log(`The accuracy prediction is: ${Math.round(r2 * 100, 2)}%`);
+console.log(`The predictions accuracy is: ${Math.round(r2 * 100, 2)}%`);
 console.log("", "");
