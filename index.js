@@ -52,7 +52,7 @@ for (let i = 0; i < numberOfPredictions; i++) {
     `Car ${i + 1}
     Horsepower: ${dataToPredict[(0, i)][0]} hp
     Weight: ${dataToPredict[(0, i)][1]} Tons
-    Displacement: ${dataToPredict[(0, i)][2]} cm3
+    Displacement: ${dataToPredict[(0, i)][2]} cui
     Can run ${predictions.get(i, 0).toFixed(2)} MPG`
   );
   console.log("", "");
