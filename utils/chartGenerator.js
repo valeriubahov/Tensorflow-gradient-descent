@@ -57,7 +57,7 @@ const createChart = async (xValues, yValues, chartName) => {
 
   const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height, chartCallback });
   const buffer = chartJSNodeCanvas.renderToBufferSync(configuration);
-  fs.writeFileSync(`./charts/${chartName}.png`, buffer, "base64");
+  fs.writeFileSync(`../charts/${chartName}.png`, buffer, "base64");
 };
 
 module.exports = { createChart };
