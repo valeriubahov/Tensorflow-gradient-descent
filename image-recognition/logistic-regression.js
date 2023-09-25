@@ -8,6 +8,7 @@ class LogisticRegression {
     this.labels = tf.tensor(labels);
 
     // here I'll store the  cross entropy value in order to adjust the learning rate automatically
+    // how incorrect we are over time
     this.costEntropyHistory = [];
 
     // record how our guesses of B are changing over time
@@ -51,7 +52,7 @@ class LogisticRegression {
 
     // update the values of b and m
     // m,b =  m/b - (mslope/bslope * learningRate)
-    this.weights = this.weights.sub(slopes.mul(this.options.learningRate));
+    return this.weights.sub(slopes.mul(this.options.learningRate));
   }
 
   // train our model
@@ -65,10 +66,12 @@ class LogisticRegression {
         const startIndex = j * this.options.batchSize;
         const { batchSize } = this.options;
 
-        const featureSlice = this.features.slice([startIndex, 0], [batchSize, -1]);
-        const labelSlice = this.labels.slice([startIndex, 0], [batchSize, -1]);
+        this.weights = tf.tidy(() => {
+          const featureSlice = this.features.slice([startIndex, 0], [batchSize, -1]);
+          const labelSlice = this.labels.slice([startIndex, 0], [batchSize, -1]);
 
-        this.gradientDescent(featureSlice, labelSlice);
+          return this.gradientDescent(featureSlice, labelSlice);
+        });
       }
 
       // save B history for analytics purpose
@@ -114,9 +117,7 @@ class LogisticRegression {
 
     // MUST APPLY ONLY AFTER STANDARDIZATION
     // create a column of ones in order to make possible the tensor moltiplication (matrix moltiplication)
-    features = tf.ones([features.shape[0], 1]).concat(features, 1);
-
-    return features;
+    return tf.ones([features.shape[0], 1]).concat(features, 1);
   }
 
   standardize(features) {
@@ -136,12 +137,21 @@ class LogisticRegression {
   }
 
   recordCost() {
-    const guesses = this.features.matMul(this.weights).softmax();
+    const cost = tf.tidy(() => {
+      const guesses = this.features.matMul(this.weights).softmax();
 
-    const termOne = this.labels.transpose().matMul(guesses.log());
-    const termTwo = this.labels.mul(-1).add(1).transpose().matMul(guesses.mul(-1).add(1).log());
+      const termOne = this.labels.transpose().matMul(guesses.add(1e-7).log());
+      const termTwo = this.labels
+        .mul(-1)
+        .add(1)
+        .transpose()
+        .matMul(guesses.mul(-1).add(1).add(1e-7).log());
+      // log(0) is -infinity that cause problems finding the accuracy
+      //by adding 1e-7 we ensure the we never do log(0)
 
-    const cost = termOne.add(termTwo).div(this.features.shape[0]).mul(-1).get(0, 0);
+      return termOne.add(termTwo).div(this.features.shape[0]).mul(-1).get(0, 0);
+    });
+
     this.costEntropyHistory.push(cost);
   }
 
